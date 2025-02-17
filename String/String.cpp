@@ -167,6 +167,16 @@ auto String::operator[](int i) const noexcept	-> const char& {
 }
 
 
+auto String::at(int i) -> char& {
+	return str_[i];
+}
+
+
+auto String::at(int i) const -> const char& {
+	return str_[i];
+}
+
+
 int String::size() const {
 	if (capacity_ == 0) {
 		return 0;
@@ -181,13 +191,58 @@ int String::capacity() const {
 }
 
 
+void String::reserve(int new_capacity) {
+	if (new_capacity > capacity_) {
+		int old_size = size();
+		allocator_.reallocate(str_, capacity_, new_capacity);
+		capacity_ = new_capacity;
+	}
+}
+
+
+void String::shrink_to_fit() {
+	int current_size = size();
+	if (current_size < capacity_) {
+		allocator_.reallocate(str_, capacity_, current_size);
+		capacity_ = current_size;
+	}
+}
+
+
 void String::clean() {
-	
+	if (str_) {
+		allocator_.deallocate(str_);
+		str_ = nullptr;
+		capacity_ = 0;
+	}
 }
 
 
 bool String::empty() const {
 	return this->size() == 0;
+}
+
+
+const char* String::c_str() const {
+	return this->str_;
+}
+
+
+char* String::data() {
+	return str_;
+}
+
+
+void String::push_back(char ch) {
+	allocator_.reallocate(str_, this->size(), this->size() + 1);
+
+	this->str_[this->size() - 1] = ch;
+}
+
+
+void String::pop_back() {
+	this->str_[size() - 1] = '\0';
+	shrink_to_fit();
 }
 
 
@@ -199,4 +254,11 @@ std::ostream& operator<<(std::ostream& out, const String& obj) {
 
 	out << obj.str_;
 	return out;
+}
+
+
+std::istream& operator>>(std::istream& in, const String& obj) {
+	String temp;
+	//in >> temp;
+	return in >> temp;
 }
